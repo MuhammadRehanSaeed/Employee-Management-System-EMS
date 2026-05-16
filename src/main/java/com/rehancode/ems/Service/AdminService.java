@@ -7,6 +7,8 @@ import com.rehancode.ems.Dto.UserResponseDTO;
 import com.rehancode.ems.Exception.ApiResponse;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 
 public interface AdminService {
 
@@ -14,4 +16,10 @@ public interface AdminService {
     ApiResponse<UserResponseDTO> registerUser(UserRequestDTO userRequestDTO);
 
     ApiResponse<EmpResponseDTO> createEmployee(EmpRequestDTO empRequestDTO);
+
+    ApiResponse<UserResponseDTO> getUser(@Valid Long id);
+
+    ApiResponse<String> deleteUser(@Valid Long id);
+
+
 }

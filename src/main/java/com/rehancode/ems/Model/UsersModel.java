@@ -38,4 +38,6 @@ public class UsersModel {
 
     @UpdateTimestamp
     private Timestamp updatedAt;
+    @OneToOne(mappedBy = "user",cascade = CascadeType.REMOVE,orphanRemoval = true)
+    private EmployeeModel employee;
 }

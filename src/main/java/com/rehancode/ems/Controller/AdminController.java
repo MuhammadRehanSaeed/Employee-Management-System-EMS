@@ -10,10 +10,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/admin")
@@ -36,4 +35,19 @@ public class AdminController {
         ApiResponse<EmpResponseDTO> response= adminService.createEmployee(empRequestDTO);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    @GetMapping("getUser/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> getUser(@Valid @PathVariable Long id){
+        ApiResponse<UserResponseDTO> response= adminService.getUser(id);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @DeleteMapping("deleteUser/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<String>> deleteUser(@Valid @PathVariable Long id){
+        ApiResponse<String> response= adminService.deleteUser(id);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 }

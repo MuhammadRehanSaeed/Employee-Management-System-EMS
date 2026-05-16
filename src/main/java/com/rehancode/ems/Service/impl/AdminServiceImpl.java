@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -99,4 +101,43 @@ public class AdminServiceImpl implements AdminService {
                 .success(true)
                 .build();
     }
+
+    @Override
+    public ApiResponse<UserResponseDTO> getUser(Long id) {
+        UsersModel user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotExists("No user exists with this id"));
+        if(user.getRole()!=Role.EMPLOYEE){
+            throw new UserNotExists("Cannot access admin");
+
+        }
+
+        UserResponseDTO response=mapper.mapToDto(user);
+        return ApiResponse.<UserResponseDTO>builder()
+                .status(HttpStatus.OK.value())
+                .message("User Fetched Successfully")
+                .data(response)
+                .success(true)
+                .build();
+
+    }
+
+    @Override
+    public ApiResponse<String> deleteUser(Long id) {
+        UsersModel user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotExists("No user exists with this id"));
+
+        if(user.getRole()!=Role.EMPLOYEE){
+            throw new UserNotExists("Admin cannot be deleted");
+        }
+
+        userRepository.delete(user);
+        return ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("User Deleted Successfully")
+                .data(null)
+                .success(true)
+                .build();
+    }
+
+
 }
