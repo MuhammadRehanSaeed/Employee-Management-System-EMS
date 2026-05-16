@@ -15,4 +15,6 @@ public interface EmployeeMapper {
 
     //ToDTO
     EmpResponseDTO toDTO(EmployeeModel employeeModel);
+
+
 }

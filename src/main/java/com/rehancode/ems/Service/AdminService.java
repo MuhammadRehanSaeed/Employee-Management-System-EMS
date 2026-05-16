@@ -1,11 +1,10 @@
 package com.rehancode.ems.Service;
 
-import com.rehancode.ems.Dto.EmpRequestDTO;
-import com.rehancode.ems.Dto.EmpResponseDTO;
-import com.rehancode.ems.Dto.UserRequestDTO;
-import com.rehancode.ems.Dto.UserResponseDTO;
+import com.rehancode.ems.Dto.*;
 import com.rehancode.ems.Exception.ApiResponse;
+import com.rehancode.ems.Model.UsersModel;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -21,5 +20,14 @@ public interface AdminService {
 
     ApiResponse<String> deleteUser(@Valid Long id);
 
+     ApiResponse<Page<UserResponseDTO>> getAllUsers(int page, int size);
 
+
+    ApiResponse<Page<EmpResponseDTO>> getAllEmp(int page, int size);
+
+    ApiResponse<EmpResponseDTO> getEmp(@Valid Long id);
+
+    ApiResponse<String> deleteEmp(@Valid Long id);
+
+    ApiResponse<String> updateEmp(@Valid Long id, EmpUpdateDTO empUpdateDTO);
 }

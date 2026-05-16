@@ -1,11 +1,8 @@
 package com.rehancode.ems.Service.impl;
 
-import com.rehancode.ems.Dto.EmpRequestDTO;
-import com.rehancode.ems.Dto.EmpResponseDTO;
+import com.rehancode.ems.Dto.*;
 import com.rehancode.ems.Dto.MapStruct.EmployeeMapper;
 import com.rehancode.ems.Dto.MapStruct.RegisterUserMapper;
-import com.rehancode.ems.Dto.UserRequestDTO;
-import com.rehancode.ems.Dto.UserResponseDTO;
 import com.rehancode.ems.Enum.Role;
 import com.rehancode.ems.Exception.ApiResponse;
 import com.rehancode.ems.Exception.UserNotExists;
@@ -14,11 +11,12 @@ import com.rehancode.ems.Model.UsersModel;
 import com.rehancode.ems.Repository.EmpRepository;
 import com.rehancode.ems.Repository.UserRepository;
 import com.rehancode.ems.Service.AdminService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 
 @Service
@@ -137,6 +135,143 @@ public class AdminServiceImpl implements AdminService {
                 .data(null)
                 .success(true)
                 .build();
+    }
+
+
+    @Override
+    public ApiResponse<Page<UserResponseDTO>> getAllUsers(int page, int size) {
+        Pageable pageable= PageRequest.of(page,size);
+
+        Page<UsersModel> users=userRepository.findAll(pageable);
+
+        Page<UserResponseDTO> response=users.map(mapper::mapToDto);
+
+
+
+        return ApiResponse.<Page<UserResponseDTO>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Users fetched Successfully")
+                .data(response)
+                .success(true)
+                .build();
+    }
+
+    @Override
+    public ApiResponse<Page<EmpResponseDTO>> getAllEmp(int page, int size) {
+        Pageable pageable= PageRequest.of(page,size);
+
+        Page<EmployeeModel> users=empRepository.findAll(pageable);
+
+        Page<EmpResponseDTO> response=users.map(employeeMapper::toDTO);
+
+
+
+        return ApiResponse.<Page<EmpResponseDTO>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Employees fetched Successfully")
+                .data(response)
+                .success(true)
+                .build();
+    }
+
+    @Override
+    public ApiResponse<EmpResponseDTO> getEmp(Long id) {
+      EmployeeModel emp=empRepository.findById(id).orElseThrow(()->new UserNotExists("Employee Doesn't Exists"));
+
+      EmpResponseDTO responseDTO=employeeMapper.toDTO(emp);
+        return ApiResponse.<EmpResponseDTO>builder()
+                .status(HttpStatus.OK.value())
+                .message("Employee fetched Successfully")
+                .data(responseDTO)
+                .success(true)
+                .build();
+    }
+
+    @Override
+    public ApiResponse<String> deleteEmp(Long id) {
+        EmployeeModel emp=empRepository.findById(id).orElseThrow(()->new UserNotExists("Employee Doesn't Exists"));
+        UsersModel user = emp.getUser();
+        if (user != null) {
+            user.setEmployee(null);
+            userRepository.save(user);
+        }
+        empRepository.deleteById(id);
+        return ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("Employee Deleted Successfully")
+                .data(null)
+                .success(true)
+                .build();
+    }
+
+    @Override
+    public ApiResponse<String> updateEmp(Long id, EmpUpdateDTO dto) {
+
+        EmployeeModel emp = empRepository.findById(id)
+                .orElseThrow(() -> new UserNotExists("Employee Doesn't Exists"));
+
+        boolean updated = false;
+
+        // FULL NAME
+        String fullName = normalize(dto.getFullName());
+        if (fullName != null && !fullName.equals(emp.getFullName())) {
+            emp.setFullName(fullName);
+            updated = true;
+        }
+
+        // PHONE
+        String phone = normalize(dto.getPhoneNumber());
+        if (phone != null && !phone.equals(emp.getPhoneNumber())) {
+            emp.setPhoneNumber(phone);
+            updated = true;
+        }
+
+        // DEPARTMENT
+        String department = normalize(dto.getDepartment());
+        if (department != null && !department.equals(emp.getDepartment())) {
+            emp.setDepartment(department);
+            updated = true;
+        }
+
+        // DESIGNATION
+        String designation = normalize(dto.getDesignation());
+        if (designation != null && !designation.equals(emp.getDesignation())) {
+            emp.setDesignation(designation);
+            updated = true;
+        }
+
+        // SALARY
+        if (dto.getSalary() > 0 && dto.getSalary() != emp.getSalary()) {
+            emp.setSalary(dto.getSalary());
+            updated = true;
+        }
+
+        // STATUS
+        if (dto.getStatus() != null && dto.getStatus() != emp.getStatus()) {
+            emp.setStatus(dto.getStatus());
+            updated = true;
+        }
+
+        // ADDRESS
+        String address = normalize(dto.getAddress());
+        if (address != null && !address.equals(emp.getAddress())) {
+            emp.setAddress(address);
+            updated = true;
+        }
+
+        if (updated) {
+            empRepository.save(emp);
+        }
+
+        return ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message(updated ? "Employee updated successfully" : "No changes detected")
+                .data(null)
+                .success(true)
+                .build();
+    }
+    private String normalize(String value) {
+        return (value == null || value.isBlank()) ? null : value.trim();
     }
 
 
