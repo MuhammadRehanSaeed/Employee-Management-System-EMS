@@ -26,6 +26,39 @@ public class GlobalExceptionHandler {
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+    @ExceptionHandler(UserNotAuthenticated.class)
+    public ResponseEntity<ApiResponse<Object>> handleUserNotAuthenticated(UserNotAuthenticated ex) {
+        logger.warn("User Not Authenticated {}", ex.getMessage());
+        ApiResponse<Object> response = ApiResponse.builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message(ex.getMessage())
+                .data(null)
+                .success(false)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAccessDeniedException(AccessDeniedException ex) {
+        logger.warn("Access denied {}", ex.getMessage());
+        ApiResponse<Object> response = ApiResponse.builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message(ex.getMessage())
+                .data(null)
+                .success(false)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+    @ExceptionHandler(UserExistsAlready.class)
+    public ResponseEntity<ApiResponse<Object>> handleUserExistsAlready(UserExistsAlready ex) {
+        logger.warn("User Already Exists {}", ex.getMessage());
+        ApiResponse<Object> response = ApiResponse.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .message(ex.getMessage())
+                .data(null)
+                .success(false)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
     @ExceptionHandler(BadCredentials.class)
     public ResponseEntity<ApiResponse<Object>> handleBadCredential(BadCredentials ex) {
         logger.warn("Bad credentials: {}", ex.getMessage());

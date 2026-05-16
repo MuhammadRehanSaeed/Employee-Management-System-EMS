@@ -1,5 +1,6 @@
 package com.rehancode.ems.Dto.MapStruct;
 
+import com.rehancode.ems.Dto.ChangePasswordDTO;
 import com.rehancode.ems.Dto.EmpRequestDTO;
 import com.rehancode.ems.Dto.EmpResponseDTO;
 import com.rehancode.ems.Model.EmployeeModel;
@@ -15,6 +16,7 @@ public interface EmployeeMapper {
 
     //ToDTO
     EmpResponseDTO toDTO(EmployeeModel employeeModel);
+
 
 
 }

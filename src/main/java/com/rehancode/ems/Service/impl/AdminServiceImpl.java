@@ -1,20 +1,26 @@
 package com.rehancode.ems.Service.impl;
 
+import com.rehancode.ems.Config.Jwt.JwtService;
 import com.rehancode.ems.Dto.*;
 import com.rehancode.ems.Dto.MapStruct.EmployeeMapper;
 import com.rehancode.ems.Dto.MapStruct.RegisterUserMapper;
 import com.rehancode.ems.Enum.Role;
+import com.rehancode.ems.Exception.AccessDeniedException;
 import com.rehancode.ems.Exception.ApiResponse;
+import com.rehancode.ems.Exception.UserExistsAlready;
 import com.rehancode.ems.Exception.UserNotExists;
 import com.rehancode.ems.Model.EmployeeModel;
 import com.rehancode.ems.Model.UsersModel;
 import com.rehancode.ems.Repository.EmpRepository;
 import com.rehancode.ems.Repository.UserRepository;
 import com.rehancode.ems.Service.AdminService;
+import io.jsonwebtoken.Jwt;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,17 +29,19 @@ import org.springframework.stereotype.Service;
 public class AdminServiceImpl implements AdminService {
 
     private final BCryptPasswordEncoder encoder;
+    private final JwtService jwtService;
     private final RegisterUserMapper mapper;
     private final UserRepository userRepository;
     private final EmployeeMapper employeeMapper;
     private final EmpRepository empRepository;
-    public AdminServiceImpl(UserRepository userRepository,
+    public AdminServiceImpl(JwtService jwtService,UserRepository userRepository,
                             BCryptPasswordEncoder encoder,
                             RegisterUserMapper mapper,EmployeeMapper employeeMapper,
                             EmpRepository empRepository
     ) {
         this.userRepository = userRepository;
         this.employeeMapper=employeeMapper;
+        this.jwtService=jwtService;
         this.encoder = encoder;
         this.mapper = mapper;
         this.empRepository=empRepository;
@@ -43,11 +51,11 @@ public class AdminServiceImpl implements AdminService {
     public ApiResponse<UserResponseDTO> registerUser(UserRequestDTO userRequestDTO) {
 
         if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
-            throw new UserNotExists("username exists");
+            throw new UserExistsAlready("username exists");
         }
 
         if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
-            throw new UserNotExists("email exists");
+            throw new UserExistsAlready("email exists");
         }
 
         UsersModel user = mapper.mapToEntity(userRequestDTO);
@@ -75,13 +83,13 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public ApiResponse<EmpResponseDTO> createEmployee(EmpRequestDTO empRequestDTO) {
         if(empRepository.existsByUser_Id(empRequestDTO.getUserId())){
-            throw new UserNotExists("UserId already associated with a employee");
+            throw new UserExistsAlready("UserId already associated with a employee");
         }
 
         UsersModel user = userRepository.findById(empRequestDTO.getUserId())
                 .orElseThrow(() -> new UserNotExists("No user exists with this id"));
         if(user.getRole()!= Role.EMPLOYEE){
-            throw new UserNotExists("Only employee profile can be created");
+            throw new AccessDeniedException("Only employee profile can be created");
         }
         EmployeeModel emp=employeeMapper.toEntity(empRequestDTO);
         emp.setUser(user);
@@ -102,10 +110,11 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public ApiResponse<UserResponseDTO> getUser(Long id) {
+
         UsersModel user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotExists("No user exists with this id"));
         if(user.getRole()!=Role.EMPLOYEE){
-            throw new UserNotExists("Cannot access admin");
+            throw new AccessDeniedException("Cannot access admin");
 
         }
 
@@ -125,7 +134,7 @@ public class AdminServiceImpl implements AdminService {
                 .orElseThrow(() -> new UserNotExists("No user exists with this id"));
 
         if(user.getRole()!=Role.EMPLOYEE){
-            throw new UserNotExists("Admin cannot be deleted");
+            throw new AccessDeniedException("Admin cannot be deleted");
         }
 
         userRepository.delete(user);
@@ -206,6 +215,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public ApiResponse<String> updateEmp(Long id, EmpUpdateDTO dto) {
+
+
 
         EmployeeModel emp = empRepository.findById(id)
                 .orElseThrow(() -> new UserNotExists("Employee Doesn't Exists"));
