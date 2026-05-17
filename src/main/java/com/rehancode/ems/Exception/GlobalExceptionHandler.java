@@ -37,6 +37,17 @@ public class GlobalExceptionHandler {
                 .build();
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
+    @ExceptionHandler(CheckInExists.class)
+    public ResponseEntity<ApiResponse<Object>> handleCheckInExists(CheckInExists ex) {
+        logger.warn("CheckIn Exists {}", ex.getMessage());
+        ApiResponse<Object> response = ApiResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .data(null)
+                .success(false)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Object>> handleAccessDeniedException(AccessDeniedException ex) {
         logger.warn("Access denied {}", ex.getMessage());

@@ -9,6 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.List;
 
 
 @Entity
@@ -52,8 +53,12 @@ public class EmployeeModel {
     @JoinColumn(name = "user_id", nullable = false,unique = true)
     private UsersModel user;
 
+    @OneToMany(mappedBy = "employee",cascade = CascadeType.REMOVE,orphanRemoval = true)
+    private List<AttendanceModel> attendance;
+
     @CreationTimestamp
     private Timestamp createdAt;
+
 
     @UpdateTimestamp
     private Timestamp updatedAt;

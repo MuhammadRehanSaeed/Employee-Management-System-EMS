@@ -4,6 +4,7 @@ import com.rehancode.ems.Dto.*;
 import com.rehancode.ems.Exception.ApiResponse;
 import com.rehancode.ems.Service.AdminService;
 import jakarta.validation.Valid;
+import org.apache.logging.log4j.core.config.plugins.validation.constraints.Required;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,6 +76,19 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> UpdateEmp(@Valid @PathVariable Long id, @RequestBody EmpUpdateDTO dto){
         ApiResponse<String> response= adminService.updateEmp(id,dto);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    @GetMapping("getAttendanceHistory")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Page<AttendanceHistoryDTO>>> GetAttendanceHistory(@RequestParam ("page") int page, @RequestParam ("size") int size){
+        ApiResponse<Page<AttendanceHistoryDTO>> response= adminService.getAttHistory(page,size);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("getAttendanceHistory/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AttendanceHistoryDTO>> GetAttendanceHistoryById(@PathVariable Long id){
+        ApiResponse<AttendanceHistoryDTO> response= adminService.getAttHistoryById(id);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

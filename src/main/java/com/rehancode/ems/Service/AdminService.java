@@ -30,4 +30,8 @@ public interface AdminService {
     ApiResponse<String> deleteEmp(@Valid Long id);
 
     ApiResponse<String> updateEmp(@Valid Long id, EmpUpdateDTO empUpdateDTO);
+
+    ApiResponse<Page<AttendanceHistoryDTO>> getAttHistory(int page,int size);
+
+    ApiResponse<AttendanceHistoryDTO> getAttHistoryById(Long id);
 }

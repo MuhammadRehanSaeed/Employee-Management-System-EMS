@@ -2,6 +2,7 @@ package com.rehancode.ems.Service.impl;
 
 import com.rehancode.ems.Config.Jwt.JwtService;
 import com.rehancode.ems.Dto.*;
+import com.rehancode.ems.Dto.MapStruct.AttendanceMapper;
 import com.rehancode.ems.Dto.MapStruct.EmployeeMapper;
 import com.rehancode.ems.Dto.MapStruct.RegisterUserMapper;
 import com.rehancode.ems.Enum.Role;
@@ -9,8 +10,10 @@ import com.rehancode.ems.Exception.AccessDeniedException;
 import com.rehancode.ems.Exception.ApiResponse;
 import com.rehancode.ems.Exception.UserExistsAlready;
 import com.rehancode.ems.Exception.UserNotExists;
+import com.rehancode.ems.Model.AttendanceModel;
 import com.rehancode.ems.Model.EmployeeModel;
 import com.rehancode.ems.Model.UsersModel;
+import com.rehancode.ems.Repository.AttendanceRepository;
 import com.rehancode.ems.Repository.EmpRepository;
 import com.rehancode.ems.Repository.UserRepository;
 import com.rehancode.ems.Service.AdminService;
@@ -29,18 +32,22 @@ import org.springframework.stereotype.Service;
 public class AdminServiceImpl implements AdminService {
 
     private final BCryptPasswordEncoder encoder;
+    private final AttendanceRepository attendanceRepository;
     private final JwtService jwtService;
+    private final AttendanceMapper attendanceMapper;
     private final RegisterUserMapper mapper;
     private final UserRepository userRepository;
     private final EmployeeMapper employeeMapper;
     private final EmpRepository empRepository;
-    public AdminServiceImpl(JwtService jwtService,UserRepository userRepository,
+    public AdminServiceImpl(AttendanceMapper attendanceMapper,AttendanceRepository attendanceRepository,JwtService jwtService,UserRepository userRepository,
                             BCryptPasswordEncoder encoder,
                             RegisterUserMapper mapper,EmployeeMapper employeeMapper,
                             EmpRepository empRepository
     ) {
         this.userRepository = userRepository;
+        this.attendanceRepository=attendanceRepository;
         this.employeeMapper=employeeMapper;
+        this.attendanceMapper=attendanceMapper;
         this.jwtService=jwtService;
         this.encoder = encoder;
         this.mapper = mapper;
@@ -281,6 +288,35 @@ public class AdminServiceImpl implements AdminService {
                 .success(true)
                 .build();
     }
+
+    @Override
+    public ApiResponse<Page<AttendanceHistoryDTO>> getAttHistory(int page,int size) {
+        Pageable pageable=PageRequest.of(page,size);
+        Page<AttendanceModel> attendanceModel=attendanceRepository.findAll(pageable);
+        Page<AttendanceHistoryDTO> response=attendanceModel.map(attendanceMapper::toDTO);
+
+        return ApiResponse.<Page<AttendanceHistoryDTO>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Employee Attendance History")
+                .data(response)
+                .success(true)
+                .build();
+    }
+
+    @Override
+    public ApiResponse<AttendanceHistoryDTO> getAttHistoryById(Long id) {
+        AttendanceModel model=attendanceRepository.findByemployee_Id(id).orElseThrow(()-> new UserNotExists("No User Exists"));
+
+        AttendanceHistoryDTO response=attendanceMapper.toDTO(model);
+        return ApiResponse.<AttendanceHistoryDTO>builder()
+                .status(HttpStatus.OK.value())
+                .message("Employee Attendance History")
+                .data(response)
+                .success(true)
+                .build();
+
+    }
+
     private String normalize(String value) {
         return (value == null || value.isBlank()) ? null : value.trim();
     }
