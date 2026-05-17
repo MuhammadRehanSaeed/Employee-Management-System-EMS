@@ -79,10 +79,12 @@ com.rehancode.ems
 Full employee management (CRUD)
 View all attendance records
 Filter and analyze attendance data
+
 🔵** EMPLOYEE**
 Login securely
 Check-in / Check-out daily
 View personal attendance history
+
 📌 **Future Improvements**
 Leave management system
 Late/early arrival detection rules
@@ -93,4 +95,5 @@ Export reports (PDF / Excel)
 
 ⚡ Author
 **Muhammad Rehan Saeed**
+
 Spring Boot EMS Project
