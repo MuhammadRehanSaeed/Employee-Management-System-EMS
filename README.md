@@ -1,41 +1,68 @@
-🏢 #EMS – Employee Management System
-📌 Description
+# 🏢 EMS – Employee Management System
 
-EMS (Employee Management System) is a role-based backend system built using Spring Boot, Spring Security, and JWT authentication. It allows organizations to manage employees and administrators, track employee attendance (check-in/check-out), and maintain attendance history with secure role-based access.
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-Backend-green)
+![JWT](https://img.shields.io/badge/Auth-JWT-blue)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+![Status](https://img.shields.io/badge/Status-In%20Development-orange)
 
-🚀 Features
-🔐 Authentication & Authorization
-JWT-based login system
-Role-based access control (ADMIN, EMPLOYEE)
-Secure password handling with Spring Security
-👤 Employee Management
-Admin can create, update, delete employees
-View employee details
-Each employee is linked with a unique user account
-⏱️ Attendance System
-Employee check-in / check-out functionality
-Automatic timestamp recording
-Daily attendance tracking
-Attendance history per employee
-Admin can view all employees’ attendance records
-📊 Admin Panel Features
-Manage employee records
-View attendance history of all employees
-Filter attendance by date or employee
-System-wide monitoring of attendance status
-🛠️ Tech Stack
-Backend: Spring Boot
-Security: Spring Security + JWT
-Database: MySQL / PostgreSQL
-ORM: Spring Data JPA (Hibernate)
-Architecture: REST APIs
-Build Tool: Maven
-🧩 Core Modules
-Authentication Module
-Employee Management Module
-Attendance Module
-Admin Control Module
-📁 Project Structure
+---
+
+## 📌 Overview
+EMS (Employee Management System) is a role-based backend application built using **Spring Boot, Spring Security, and JWT authentication**. It is designed to manage employees, track attendance (check-in/check-out), and provide secure role-based access for administrators and employees.
+
+---
+
+## 🚀 Features
+
+### 🔐 Authentication & Authorization
+- JWT-based secure login system
+- Role-based access control (**ADMIN, EMPLOYEE**)
+- Spring Security integration
+
+### 👤 Employee Management
+- Admin can create, update, and delete employees
+- View employee details
+- Each employee is mapped to a unique user account
+
+### ⏱️ Attendance System
+- Employee check-in / check-out
+- Automatic timestamp recording
+- Daily attendance tracking
+- Attendance history per employee
+- Admin can view all employees’ attendance records
+
+### 📊 Admin Features
+- Manage employee records (CRUD)
+- View all attendance records
+- Filter attendance by employee or date
+- Monitor system-wide attendance activity
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer        | Technology |
+|--------------|------------|
+| Backend      | Spring Boot |
+| Security     | Spring Security + JWT |
+| Database     | MySQL / PostgreSQL |
+| ORM          | Spring Data JPA (Hibernate) |
+| Architecture | REST APIs |
+| Build Tool   | Maven |
+
+---
+
+## 🧩 Core Modules
+- Authentication Module
+- Employee Management Module
+- Attendance Module
+- Admin Control Module
+
+---
+
+## 📁 Project Structure
+
+```text
 com.yourname.ems
  ├── controller
  ├── service
@@ -45,22 +72,24 @@ com.yourname.ems
  ├── security
  ├── config
  └── exception
-👥 Roles
-ADMIN
-Manage employees (CRUD)
+
+
+👥 Roles & Permissions
+🟢 ADMIN
+Full employee management (CRUD)
 View all attendance records
-Access employee details and history
-EMPLOYEE
-Login to system
+Filter and analyze attendance data
+🔵 EMPLOYEE
+Login securely
 Check-in / Check-out daily
 View personal attendance history
 📌 Future Improvements
 Leave management system
-Late/early detection rules
+Late/early arrival detection rules
 Attendance analytics dashboard
-Email notifications
-Export attendance reports (PDF/Excel)
+Email/SMS notifications
+Export reports (PDF / Excel)
 ⚡ Author
 
-Developed by Rehan
+Rehan
 Spring Boot EMS Project
