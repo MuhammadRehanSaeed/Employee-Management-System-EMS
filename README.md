@@ -45,7 +45,7 @@ EMS (Employee Management System) is a role-based backend application built using
 |--------------|------------|
 | Backend      | Spring Boot |
 | Security     | Spring Security + JWT |
-| Database     | MySQL / PostgreSQL |
+| Database     | MySQL  |
 | ORM          | Spring Data JPA (Hibernate) |
 | Architecture | REST APIs |
 | Build Tool   | Maven |
@@ -74,22 +74,23 @@ com.yourname.ems
  └── exception
 
 
-👥 Roles & Permissions
+👥 ##Roles & Permissions
 🟢 ADMIN
 Full employee management (CRUD)
 View all attendance records
 Filter and analyze attendance data
-🔵 EMPLOYEE
+🔵 ##EMPLOYEE
 Login securely
 Check-in / Check-out daily
 View personal attendance history
-📌 Future Improvements
+📌 ##Future Improvements
 Leave management system
 Late/early arrival detection rules
 Attendance analytics dashboard
 Email/SMS notifications
 Export reports (PDF / Excel)
-⚡ Author
 
-Rehan
+
+⚡ Author
+##Muhammad Rehan Saeed
 Spring Boot EMS Project
