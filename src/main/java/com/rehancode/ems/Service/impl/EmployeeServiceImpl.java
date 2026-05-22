@@ -15,6 +15,7 @@ import com.rehancode.ems.Model.UsersModel;
 import com.rehancode.ems.Repository.EmpRepository;
 import com.rehancode.ems.Repository.UserRepository;
 import com.rehancode.ems.Service.EmployeeService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
     private BCryptPasswordEncoder encoder;
@@ -52,6 +54,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         Long userId = userPrincipal.getUser().getId();
+        log.debug("Fetching profile for userId={}", userId);
 
         EmployeeModel emp = empRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new UserNotExists("Employee not found"));
@@ -79,6 +82,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         Long userId = userPrincipal.getUser().getId();
+        log.info("Profile update attempt userId={}", userId);
 
         EmployeeModel emp = empRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new UserNotExists("Employee not found"));
@@ -133,6 +137,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         if (updated) {
             empRepository.save(emp);
+            log.info("Profile updated userId={}", userId);
+        } else {
+            log.debug("No profile changes detected userId={}", userId);
         }
 
         return ApiResponse.<String>builder()
@@ -160,28 +167,33 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         Long userId = userPrincipal.getUser().getId();
+        log.info("Password change attempt userId={}", userId);
 
         UsersModel user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotExists("User not found"));
 
         // 1. Check new password match
         if (!dto.getNewPassword().equals(dto.getReEnterPassword())) {
+            log.warn("Password change failed – passwords do not match userId={}", userId);
             throw new InvalidCredentials("Passwords do not match");
         }
 
         // 2. Check current password (IMPORTANT SECURITY STEP)
         if (!encoder.matches(dto.getOldPassword(), user.getPassword())) {
+            log.warn("Password change failed – old password incorrect userId={}", userId);
             throw new InvalidCredentials("Old password is incorrect");
         }
 
         // 3. Prevent same password reuse
         if (encoder.matches(dto.getNewPassword(), user.getPassword())) {
+            log.warn("Password change failed – new password same as old userId={}", userId);
             throw new InvalidCredentials("New password cannot be same as old password");
         }
 
         // 4. Update password
         user.setPassword(encoder.encode(dto.getNewPassword()));
         userRepository.save(user);
+        log.info("Password changed successfully userId={}", userId);
 
         return ApiResponse.<String>builder()
                 .status(HttpStatus.OK.value())

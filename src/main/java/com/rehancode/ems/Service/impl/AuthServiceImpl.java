@@ -9,6 +9,7 @@ import com.rehancode.ems.Exception.ApiResponse;
 import com.rehancode.ems.Exception.BadCredentials;
 import com.rehancode.ems.Model.UsersModel;
 import com.rehancode.ems.Service.AuthService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
     private AuthenticationManager authenticationManager;
@@ -28,12 +30,14 @@ public class AuthServiceImpl implements AuthService {
     }
     @Override
     public ApiResponse<LoginResponseDTO> login(LoginRequestDTO loginRequestDTO) {
+        log.info("Login attempt for username='{}'", loginRequestDTO.getUsername());
         Authentication authentication;
         try{
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequestDTO.getUsername(),loginRequestDTO.getPassword())
             );
         } catch (BadCredentialsException e) {
+            log.warn("Login failed for username='{}' – bad credentials", loginRequestDTO.getUsername());
             throw new BadCredentials("Invalid Credentials");
         }
         UserPrinicple userPrinicple= (UserPrinicple) authentication.getPrincipal();
@@ -41,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
         String token=jwtService.generateToken(usersModel);
         LoginResponseDTO response=mapper.mapToDto(usersModel);
         response.setToken(token);
+        log.info("Login successful for username='{}' role='{}'", usersModel.getUsername(), usersModel.getRole());
 
         return ApiResponse.<LoginResponseDTO>builder()
                 .status(HttpStatus.OK.value())

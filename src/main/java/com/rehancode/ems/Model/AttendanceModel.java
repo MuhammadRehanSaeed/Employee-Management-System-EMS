@@ -31,6 +31,8 @@ public class AttendanceModel {
 
     private Long totalWorkingMinutes;
 
+    private boolean isLate;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "employee_id")
     private EmployeeModel employee;
