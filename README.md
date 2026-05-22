@@ -87,7 +87,6 @@ View personal attendance history
 
 📌 **Future Improvements**
 Leave management system
-Late/early arrival detection rules
 Attendance analytics dashboard
 Email/SMS notifications
 Export reports (PDF / Excel)
