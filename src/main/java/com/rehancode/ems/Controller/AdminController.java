@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/admin")
 public class AdminController {
@@ -88,6 +90,19 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<AttendanceHistoryDTO>> GetAttendanceHistoryById(@PathVariable Long id){
         ApiResponse<AttendanceHistoryDTO> response= adminService.getAttHistoryById(id);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    // CONTROLLER
+
+    @GetMapping("/report")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<AttendanceReportDTO>>> getAttendanceReport(
+            @RequestParam String date
+    ) {
+
+        ApiResponse<List<AttendanceReportDTO>> response =
+                adminService.getReport(date);
+
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

@@ -5,6 +5,7 @@ import com.rehancode.ems.Dto.*;
 import com.rehancode.ems.Dto.MapStruct.AttendanceMapper;
 import com.rehancode.ems.Dto.MapStruct.EmployeeMapper;
 import com.rehancode.ems.Dto.MapStruct.RegisterUserMapper;
+import com.rehancode.ems.Enum.AttendanceStatus;
 import com.rehancode.ems.Enum.Role;
 import com.rehancode.ems.Exception.AccessDeniedException;
 import com.rehancode.ems.Exception.ApiResponse;
@@ -27,6 +28,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -316,6 +323,68 @@ public class AdminServiceImpl implements AdminService {
                 .status(HttpStatus.OK.value())
                 .message("Employee Attendance History")
                 .data(response)
+                .success(true)
+                .build();
+    }
+
+// SERVICE IMPLEMENTATION
+
+    @Override
+    public ApiResponse<List<AttendanceReportDTO>> getReport(String date) {
+
+        LocalDate parsedDate = LocalDate.parse(date);
+
+        List<EmployeeModel> employees = empRepository.findAll();
+
+        List<AttendanceModel> attendanceList =
+                attendanceRepository.findByAttendanceDate(parsedDate);
+
+        Map<Long, AttendanceModel> attendanceMap =
+                attendanceList.stream()
+                        .collect(Collectors.toMap(
+                                a -> a.getEmployee().getId(),
+                                a -> a
+                        ));
+
+        List<AttendanceReportDTO> report = new ArrayList<>();
+
+        for (EmployeeModel emp : employees) {
+
+            AttendanceModel att = attendanceMap.get(emp.getId());
+
+            AttendanceReportDTO dto = new AttendanceReportDTO();
+
+            dto.setEmployeeId(emp.getId());
+            dto.setEmployeeName(emp.getFullName());
+            dto.setDesignation(emp.getDesignation());
+            dto.setAttendanceDate(parsedDate);
+
+            if (att == null) {
+
+                dto.setStatus(AttendanceStatus.ABSENT);
+                dto.setCheckedIn(false);
+                dto.setCheckedOut(false);
+
+            } else {
+
+                dto.setCheckInTime(att.getCheckInTime());
+                dto.setCheckOutTime(att.getCheckOutTime());
+
+                dto.setCheckedIn(att.getCheckInTime() != null);
+                dto.setCheckedOut(att.getCheckOutTime() != null);
+
+                dto.setTotalWorkingMinutes(att.getTotalWorkingMinutes());
+
+                dto.setStatus(att.getStatus());
+            }
+
+            report.add(dto);
+        }
+
+        return ApiResponse.<List<AttendanceReportDTO>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Attendance Report")
+                .data(report)
                 .success(true)
                 .build();
     }

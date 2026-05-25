@@ -34,4 +34,6 @@ public interface AdminService {
     ApiResponse<Page<AttendanceHistoryDTO>> getAttHistory(int page,int size);
 
     ApiResponse<AttendanceHistoryDTO> getAttHistoryById(Long id);
+
+    ApiResponse<List<AttendanceReportDTO>> getReport(String date);
 }
