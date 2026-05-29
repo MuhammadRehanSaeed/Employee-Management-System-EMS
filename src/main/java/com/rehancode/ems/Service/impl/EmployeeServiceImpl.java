@@ -6,10 +6,7 @@ import com.rehancode.ems.Dto.ChangePasswordDTO;
 import com.rehancode.ems.Dto.EmpResponseDTO;
 import com.rehancode.ems.Dto.EmpUpdateDTO;
 import com.rehancode.ems.Dto.MapStruct.EmployeeMapper;
-import com.rehancode.ems.Exception.ApiResponse;
-import com.rehancode.ems.Exception.InvalidCredentials;
-import com.rehancode.ems.Exception.UserNotAuthenticated;
-import com.rehancode.ems.Exception.UserNotExists;
+import com.rehancode.ems.Exception.*;
 import com.rehancode.ems.Model.EmployeeModel;
 import com.rehancode.ems.Model.UsersModel;
 import com.rehancode.ems.Repository.EmpRepository;
@@ -21,8 +18,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -172,6 +167,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         UsersModel user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotExists("User not found"));
 
+
         // 1. Check new password match
         if (!dto.getNewPassword().equals(dto.getReEnterPassword())) {
             log.warn("Password change failed – passwords do not match userId={}", userId);
@@ -194,6 +190,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         user.setPassword(encoder.encode(dto.getNewPassword()));
         userRepository.save(user);
         log.info("Password changed successfully userId={}", userId);
+
 
         return ApiResponse.<String>builder()
                 .status(HttpStatus.OK.value())

@@ -18,18 +18,20 @@ import com.rehancode.ems.Repository.AttendanceRepository;
 import com.rehancode.ems.Repository.EmpRepository;
 import com.rehancode.ems.Repository.UserRepository;
 import com.rehancode.ems.Service.AdminService;
-import io.jsonwebtoken.Jwt;
+import com.rehancode.ems.Service.EmailService;
+import com.rehancode.ems.Util.EmailTemplates;
+import com.rehancode.ems.Util.Util;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,13 @@ import java.util.stream.Collectors;
 @Service
 public class AdminServiceImpl implements AdminService {
 
+
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+    @Value("${password.change.path}")
+    private String resetPath;
+    private final EmailService  emailService;
     private final BCryptPasswordEncoder encoder;
     private final AttendanceRepository attendanceRepository;
     private final JwtService jwtService;
@@ -48,12 +57,13 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final EmployeeMapper employeeMapper;
     private final EmpRepository empRepository;
-    public AdminServiceImpl(AttendanceMapper attendanceMapper,AttendanceRepository attendanceRepository,JwtService jwtService,UserRepository userRepository,
+    public AdminServiceImpl(EmailService  emailService,AttendanceMapper attendanceMapper,AttendanceRepository attendanceRepository,JwtService jwtService,UserRepository userRepository,
                             BCryptPasswordEncoder encoder,
                             RegisterUserMapper mapper,EmployeeMapper employeeMapper,
                             EmpRepository empRepository
     ) {
         this.userRepository = userRepository;
+        this.emailService = emailService;
         this.attendanceRepository=attendanceRepository;
         this.employeeMapper=employeeMapper;
         this.attendanceMapper=attendanceMapper;
@@ -62,6 +72,7 @@ public class AdminServiceImpl implements AdminService {
         this.mapper = mapper;
         this.empRepository=empRepository;
     }
+
 
     @Override
     public ApiResponse<UserResponseDTO> registerUser(UserRequestDTO userRequestDTO) {
@@ -77,17 +88,34 @@ public class AdminServiceImpl implements AdminService {
             throw new UserExistsAlready("email exists");
         }
 
+
         UsersModel user = mapper.mapToEntity(userRequestDTO);
-        user.setPassword(encoder.encode(userRequestDTO.getPassword()));
+        String tempPassword= Util.generateTempPassword();
+        user.setPassword(encoder.encode(tempPassword));
+       // String resetLink="http://localhost:8080/api/employee/change-password";
+
+        String resetLink = baseUrl + resetPath;
+
+
+
+//        user.setPassword(encoder.encode(userRequestDTO.getPassword()));
         user.setActive(
                 userRequestDTO.getIsActive() != null
                         ? userRequestDTO.getIsActive()
                         : true
         );
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(480);
 
         UsersModel savedUser = userRepository.save(user);
         log.info("User registered successfully userId={} username='{}'", savedUser.getId(), savedUser.getUsername());
 
+       // emailService.sendEmail(user.getEmail(),"EMS Portal - User Password Reset", "Dear" + user.getEmail() + "\n Your temporary password is " + tempPassword + "\nKindly change your password using the link below: \n" + resetLink + "\n Regards,"+ "\n EMS Team");
+        String content= EmailTemplates.resetPasswordTemplate(user.getUsername(),tempPassword,resetLink);
+        emailService.sendEmail(
+                user.getEmail(),
+                "EMS Portal - User Password Reset",
+                content
+        );
         UserResponseDTO response = mapper.mapToDto(savedUser);
         return ApiResponse.<UserResponseDTO>builder()
                 .status(HttpStatus.CREATED.value())

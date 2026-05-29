@@ -95,6 +95,16 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
+    @ExceptionHandler(InvalidLeaveException.class)
+    public ResponseEntity<ApiResponse<Object>> handleInvalidLeave(InvalidLeaveException ex) {
+        ApiResponse<Object> response = ApiResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .data(null)
+                .success(false)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(UserNotExists.class)
     public ResponseEntity<ApiResponse<Object>> handleUserNotFound(UserNotExists ex) {

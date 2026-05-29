@@ -56,6 +56,9 @@ public class EmployeeModel {
     @OneToMany(mappedBy = "employee",cascade = CascadeType.REMOVE,orphanRemoval = true)
     private List<AttendanceModel> attendance;
 
+    @OneToMany(mappedBy = "employee",cascade = CascadeType.REMOVE,orphanRemoval = true)
+    private List<LeaveModel> leave;
+
     @CreationTimestamp
     private Timestamp createdAt;
 
