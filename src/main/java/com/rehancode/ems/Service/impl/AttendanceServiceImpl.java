@@ -1,6 +1,5 @@
 package com.rehancode.ems.Service.impl;
 
-import com.rehancode.ems.Config.DetailsService.UserPrinicple;
 import com.rehancode.ems.Constants.Constants;
 import com.rehancode.ems.Dto.AttendanceHistoryDTO;
 import com.rehancode.ems.Dto.MapStruct.AttendanceMapper;
@@ -12,22 +11,19 @@ import com.rehancode.ems.Model.EmployeeModel;
 import com.rehancode.ems.Repository.AttendanceRepository;
 import com.rehancode.ems.Repository.EmpRepository;
 import com.rehancode.ems.Service.AttendanceService;
+import com.rehancode.ems.Util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.chrono.ChronoLocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static com.rehancode.ems.Constants.Constants.HALF_DAY_MINUTES;
-import static com.rehancode.ems.Constants.Constants.OFFICE_START_TIME;
 
 @Slf4j
 @Service
@@ -42,19 +38,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
     @Override
     public ApiResponse<String> checkIn() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null ||
-                !auth.isAuthenticated() ||
-                auth.getPrincipal().equals("anonymousUser")) {
-            throw new UserNotAuthenticated("User not authenticated");
-        }
-
-        if (!(auth.getPrincipal() instanceof UserPrinicple userPrincipal)) {
-            throw new UserNotAuthenticated("Invalid user principal");
-        }
-
-        Long userId = userPrincipal.getUser().getId();
+        Long userId = SecurityUtil.getAuthenticatedUserId();
         log.info("Check-in attempt userId={}", userId);
 
         EmployeeModel emp = empRepository.findByUser_Id(userId)
@@ -95,19 +79,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     public ApiResponse<String> checkOut() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null ||
-                !auth.isAuthenticated() ||
-                auth.getPrincipal().equals("anonymousUser")) {
-            throw new UserNotAuthenticated("User not authenticated");
-        }
-
-        if (!(auth.getPrincipal() instanceof UserPrinicple userPrincipal)) {
-            throw new UserNotAuthenticated("Invalid user principal");
-        }
-
-        Long userId = userPrincipal.getUser().getId();
+        Long userId = SecurityUtil.getAuthenticatedUserId();
         log.info("Check-out attempt userId={}", userId);
 
         EmployeeModel emp = empRepository.findByUser_Id(userId)
@@ -134,7 +106,11 @@ public class AttendanceServiceImpl implements AttendanceService {
        }
        attendance.setTotalWorkingMinutes(workingMinutes);
        attendanceRepository.save(attendance);
-       log.info("Check-out successful empId={} workingMinutes={}", emp.getId(), workingMinutes);
+       if (workingMinutes >= HALF_DAY_MINUTES) {
+           log.info("Full-day check-out recorded empId={} workingMinutes={}", emp.getId(), workingMinutes);
+       }
+       log.info("Check-out successful empId={} date={} workingMinutes={} status='{}'",
+               emp.getId(), LocalDate.now(), workingMinutes, attendance.getStatus());
         return ApiResponse.<String>builder()
                 .status(HttpStatus.OK.value())
                 .message("GoodBye CheckOut successfully")
@@ -144,26 +120,17 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     public ApiResponse<AttendanceHistoryDTO> getTodayAttendance() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null ||
-                !auth.isAuthenticated() ||
-                auth.getPrincipal().equals("anonymousUser")) {
-            throw new UserNotAuthenticated("User not authenticated");
-        }
-
-        if (!(auth.getPrincipal() instanceof UserPrinicple userPrincipal)) {
-            throw new UserNotAuthenticated("Invalid user principal");
-        }
-
-        Long userId = userPrincipal.getUser().getId();
+        Long userId = SecurityUtil.getAuthenticatedUserId();
         log.debug("Fetching today's attendance userId={}", userId);
 
         EmployeeModel emp = empRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new UserNotExists("Employee not found"));
 
-        AttendanceModel model =attendanceRepository.findByEmployeeAndAttendanceDate(emp,LocalDate.now()).orElseThrow(()->new CheckInExists("No Attendance for today"));
-        AttendanceHistoryDTO response=attendanceMapper.toDTO(model);
+        AttendanceModel model = attendanceRepository.findByEmployeeAndAttendanceDate(emp, LocalDate.now())
+                .orElseThrow(() -> new CheckInExists("No Attendance for today"));
+        AttendanceHistoryDTO response = attendanceMapper.toDTO(model);
+        log.debug("Today's attendance fetched empId={} date={} status='{}'",
+                emp.getId(), LocalDate.now(), model.getStatus());
         return ApiResponse.<AttendanceHistoryDTO>builder()
                 .status(HttpStatus.OK.value())
                 .data(response)
@@ -174,19 +141,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     public ApiResponse<List<AttendanceHistoryDTO>> getAttendanceHistory() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null ||
-                !auth.isAuthenticated() ||
-                auth.getPrincipal().equals("anonymousUser")) {
-            throw new UserNotAuthenticated("User not authenticated");
-        }
-
-        if (!(auth.getPrincipal() instanceof UserPrinicple userPrincipal)) {
-            throw new UserNotAuthenticated("Invalid user principal");
-        }
-
-        Long userId = userPrincipal.getUser().getId();
+        Long userId = SecurityUtil.getAuthenticatedUserId();
         log.debug("Fetching attendance history userId={}", userId);
 
         EmployeeModel emp = empRepository.findByUser_Id(userId)
@@ -199,6 +154,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                         .toList();
 
         log.debug("Attendance history fetched empId={} records={}", emp.getId(), response.size());
+        log.info("Attendance history returned empId={} totalRecords={}", emp.getId(), response.size());
         return ApiResponse.<List<AttendanceHistoryDTO>>builder()
                 .status(HttpStatus.OK.value())
                 .data(response)

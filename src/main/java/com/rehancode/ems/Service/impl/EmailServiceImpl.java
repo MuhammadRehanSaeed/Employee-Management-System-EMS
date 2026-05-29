@@ -20,20 +20,20 @@ public class EmailServiceImpl implements EmailService {
     @Override
     @Async("asyncExecutor")
     public void sendEmail(String to, String subject, String content) {
+        log.info("Preparing email to='{}' subject='{}'", to, subject);
 
         SimpleMailMessage message = new SimpleMailMessage();
-
         message.setFrom("noreply@ems.com");
         message.setTo(to);
         message.setSubject(subject);
         message.setText(content);
 
+        log.debug("Attempting SMTP send to='{}'", to);
         try {
             mailSender.send(message);
-            log.info("Email sent successfully to {}", to);
-
+            log.info("Email sent successfully to='{}' subject='{}'", to, subject);
         } catch (Exception e) {
-            log.error("Failed to send email to {}", to, e);
+            log.error("Failed to send email to='{}' subject='{}' error='{}'", to, subject, e.getMessage(), e);
         }
     }
 }

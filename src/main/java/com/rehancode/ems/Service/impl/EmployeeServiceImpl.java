@@ -1,7 +1,5 @@
 package com.rehancode.ems.Service.impl;
 
-
-import com.rehancode.ems.Config.DetailsService.UserPrinicple;
 import com.rehancode.ems.Dto.ChangePasswordDTO;
 import com.rehancode.ems.Dto.EmpResponseDTO;
 import com.rehancode.ems.Dto.EmpUpdateDTO;
@@ -12,10 +10,9 @@ import com.rehancode.ems.Model.UsersModel;
 import com.rehancode.ems.Repository.EmpRepository;
 import com.rehancode.ems.Repository.UserRepository;
 import com.rehancode.ems.Service.EmployeeService;
+import com.rehancode.ems.Util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,25 +32,13 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public ApiResponse<EmpResponseDTO> getMyProfile() {
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null ||
-                !auth.isAuthenticated() ||
-                auth.getPrincipal().equals("anonymousUser")) {
-            throw new UserNotAuthenticated("User not authenticated");
-        }
-
-        if (!(auth.getPrincipal() instanceof UserPrinicple userPrincipal)) {
-            throw new UserNotAuthenticated("Invalid user principal");
-        }
-
-        Long userId = userPrincipal.getUser().getId();
+        Long userId = SecurityUtil.getAuthenticatedUserId();
         log.debug("Fetching profile for userId={}", userId);
 
         EmployeeModel emp = empRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new UserNotExists("Employee not found"));
 
+        log.debug("Profile fetched successfully userId={} empId={}", userId, emp.getId());
         return ApiResponse.<EmpResponseDTO>builder()
                 .status(HttpStatus.OK.value())
                 .message("User fetched successfully")
@@ -64,19 +49,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public ApiResponse<String> updateProfile(EmpUpdateDTO dto) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null ||
-                !auth.isAuthenticated() ||
-                auth.getPrincipal().equals("anonymousUser")) {
-            throw new UserNotAuthenticated("User not authenticated");
-        }
-
-        if (!(auth.getPrincipal() instanceof UserPrinicple userPrincipal)) {
-            throw new UserNotAuthenticated("Invalid user principal");
-        }
-
-        Long userId = userPrincipal.getUser().getId();
+        Long userId = SecurityUtil.getAuthenticatedUserId();
         log.info("Profile update attempt userId={}", userId);
 
         EmployeeModel emp = empRepository.findByUser_Id(userId)
@@ -148,20 +121,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public ApiResponse<String> changePassword(ChangePasswordDTO dto) {
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null ||
-                !auth.isAuthenticated() ||
-                auth.getPrincipal().equals("anonymousUser")) {
-            throw new UserNotAuthenticated("User not authenticated");
-        }
-
-        if (!(auth.getPrincipal() instanceof UserPrinicple userPrincipal)) {
-            throw new UserNotAuthenticated("Invalid user principal");
-        }
-
-        Long userId = userPrincipal.getUser().getId();
+        Long userId = SecurityUtil.getAuthenticatedUserId();
         log.info("Password change attempt userId={}", userId);
 
         UsersModel user = userRepository.findById(userId)

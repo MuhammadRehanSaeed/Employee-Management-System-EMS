@@ -1,7 +1,6 @@
 package com.rehancode.ems.Exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,13 +12,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(InvalidCredentials.class)
     public ResponseEntity<ApiResponse<Object>> handleInvalidCredential(InvalidCredentials ex) {
-        logger.warn("Bad credentials: {}", ex.getMessage());
+        log.warn("Bad credentials: {}", ex.getMessage());
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
@@ -30,7 +29,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(UserNotAuthenticated.class)
     public ResponseEntity<ApiResponse<Object>> handleUserNotAuthenticated(UserNotAuthenticated ex) {
-        logger.warn("User Not Authenticated {}", ex.getMessage());
+        log.warn("User Not Authenticated {}", ex.getMessage());
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.FORBIDDEN.value())
                 .message(ex.getMessage())
@@ -41,7 +40,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(CheckInExists.class)
     public ResponseEntity<ApiResponse<Object>> handleCheckInExists(CheckInExists ex) {
-        logger.warn("CheckIn Exists {}", ex.getMessage());
+        log.warn("CheckIn Exists {}", ex.getMessage());
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
@@ -52,7 +51,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Object>> handleAccessDeniedException(AccessDeniedException ex) {
-        logger.warn("Access denied {}", ex.getMessage());
+        log.warn("Access denied {}", ex.getMessage());
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.FORBIDDEN.value())
                 .message(ex.getMessage())
@@ -63,7 +62,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(UserExistsAlready.class)
     public ResponseEntity<ApiResponse<Object>> handleUserExistsAlready(UserExistsAlready ex) {
-        logger.warn("User Already Exists {}", ex.getMessage());
+        log.warn("User Already Exists {}", ex.getMessage());
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
@@ -74,7 +73,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(BadCredentials.class)
     public ResponseEntity<ApiResponse<Object>> handleBadCredential(BadCredentials ex) {
-        logger.warn("Bad credentials: {}", ex.getMessage());
+        log.warn("Bad credentials: {}", ex.getMessage());
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
@@ -85,7 +84,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleUsernameNotFound(UsernameNotFoundException ex) {
-        logger.warn("Authentication failed: {}", ex.getMessage());
+        log.warn("Authentication failed: {}", ex.getMessage());
 
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
@@ -98,6 +97,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(InvalidLeaveException.class)
     public ResponseEntity<ApiResponse<Object>> handleInvalidLeave(InvalidLeaveException ex) {
+        log.warn("Invalid leave request: {}", ex.getMessage());
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
@@ -108,6 +108,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<String>> handleInvalidDate(HttpMessageNotReadableException ex) {
+        log.warn("Unreadable HTTP message: {}", ex.getMessage());
 
         String message = "Invalid date format or invalid date provided";
 
@@ -129,7 +130,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotExists.class)
     public ResponseEntity<ApiResponse<Object>> handleUserNotFound(UserNotExists ex) {
-        logger.warn("User not found: {}", ex.getMessage());
+        log.warn("User not found: {}", ex.getMessage());
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -142,7 +143,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleSpringLockedException(
             org.springframework.security.authentication.LockedException ex) {
 
-        logger.warn("Locked account access attempt: {}", ex.getMessage());
+        log.warn("Locked account access attempt: {}", ex.getMessage());
 
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.FORBIDDEN.value())
@@ -156,7 +157,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccountLockedException.class)
     public ResponseEntity<ApiResponse<Object>> handleLockedException(AccountLockedException ex) {
-        logger.warn("Locked account access attempt: {}", ex.getMessage());
+        log.warn("Locked account access attempt: {}", ex.getMessage());
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.FORBIDDEN.value())
                 .message(ex.getMessage())
@@ -173,7 +174,7 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-        logger.warn("Validation failed: {}", errors);
+        log.warn("Validation failed: {}", errors);
 
         ApiResponse<Object> response = ApiResponse.<Object>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -186,7 +187,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {
-        logger.error("Unhandled exception: {}", ex.getMessage(), ex);
+        log.error("Unhandled exception: {}", ex.getMessage(), ex);
         ApiResponse<Object> response = ApiResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message(ex.getMessage())

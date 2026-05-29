@@ -109,13 +109,14 @@ public class AdminServiceImpl implements AdminService {
         UsersModel savedUser = userRepository.save(user);
         log.info("User registered successfully userId={} username='{}'", savedUser.getId(), savedUser.getUsername());
 
-       // emailService.sendEmail(user.getEmail(),"EMS Portal - User Password Reset", "Dear" + user.getEmail() + "\n Your temporary password is " + tempPassword + "\nKindly change your password using the link below: \n" + resetLink + "\n Regards,"+ "\n EMS Team");
-        String content= EmailTemplates.resetPasswordTemplate(user.getUsername(),tempPassword,resetLink);
+        String content = EmailTemplates.resetPasswordTemplate(user.getUsername(), tempPassword, resetLink);
+        log.info("Sending welcome email to='{}' subject='EMS Portal - User Password Reset'", user.getEmail());
         emailService.sendEmail(
                 user.getEmail(),
                 "EMS Portal - User Password Reset",
                 content
         );
+        log.debug("Welcome email dispatched (async) to='{}'", user.getEmail());
         UserResponseDTO response = mapper.mapToDto(savedUser);
         return ApiResponse.<UserResponseDTO>builder()
                 .status(HttpStatus.CREATED.value())
@@ -355,17 +356,18 @@ public class AdminServiceImpl implements AdminService {
                 .build();
     }
 
-// SERVICE IMPLEMENTATION
-
     @Override
     public ApiResponse<List<AttendanceReportDTO>> getReport(String date) {
+        log.info("Generating attendance report for date='{}'", date);
 
         LocalDate parsedDate = LocalDate.parse(date);
 
         List<EmployeeModel> employees = empRepository.findAll();
+        log.debug("Total employees found for report count={}", employees.size());
 
         List<AttendanceModel> attendanceList =
                 attendanceRepository.findByAttendanceDate(parsedDate);
+        log.debug("Attendance records found for date='{}' count={}", parsedDate, attendanceList.size());
 
         Map<Long, AttendanceModel> attendanceMap =
                 attendanceList.stream()
@@ -388,26 +390,29 @@ public class AdminServiceImpl implements AdminService {
             dto.setAttendanceDate(parsedDate);
 
             if (att == null) {
-
                 dto.setStatus(AttendanceStatus.ABSENT);
                 dto.setCheckedIn(false);
                 dto.setCheckedOut(false);
-
+                log.debug("Employee marked ABSENT empId={} date='{}'", emp.getId(), parsedDate);
             } else {
-
                 dto.setCheckInTime(att.getCheckInTime());
                 dto.setCheckOutTime(att.getCheckOutTime());
-
                 dto.setCheckedIn(att.getCheckInTime() != null);
                 dto.setCheckedOut(att.getCheckOutTime() != null);
-
                 dto.setTotalWorkingMinutes(att.getTotalWorkingMinutes());
-
                 dto.setStatus(att.getStatus());
+                log.debug("Employee attendance empId={} status='{}' checkedIn={} checkedOut={}",
+                        emp.getId(), att.getStatus(), att.getCheckInTime() != null, att.getCheckOutTime() != null);
             }
 
             report.add(dto);
         }
+
+        log.info("Attendance report generated date='{}' totalEmployees={} present={} absent={}",
+                parsedDate,
+                report.size(),
+                report.stream().filter(r -> r.getStatus() != AttendanceStatus.ABSENT).count(),
+                report.stream().filter(r -> r.getStatus() == AttendanceStatus.ABSENT).count());
 
         return ApiResponse.<List<AttendanceReportDTO>>builder()
                 .status(HttpStatus.OK.value())
