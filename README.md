@@ -88,7 +88,7 @@ View personal attendance history
 📌 **Future Improvements**
 Leave management system
 Attendance analytics dashboard
-Email/SMS notifications
+SMS notifications
 Export reports (PDF / Excel)
 
 
