@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -103,6 +104,26 @@ public class GlobalExceptionHandler {
                 .data(null)
                 .success(false)
                 .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<String>> handleInvalidDate(HttpMessageNotReadableException ex) {
+
+        String message = "Invalid date format or invalid date provided";
+
+        Throwable cause = ex.getCause();
+
+        if (cause != null && cause.getMessage() != null) {
+            message = cause.getMessage();
+        }
+
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(message)
+                .data(null)
+                .success(false)
+                .build();
+
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
