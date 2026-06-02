@@ -1,6 +1,7 @@
 package com.rehancode.ems.Config.Jwt;
 
 import com.rehancode.ems.Model.UsersModel;
+import com.rehancode.ems.Repository.BlackListedTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -22,6 +23,11 @@ import java.util.function.Function;
 public class JwtService {
     @Value("${jwt.secret}")
     private String key;
+    private BlackListedTokenRepository blackListedTokenRepository;
+
+    public JwtService(BlackListedTokenRepository blackListedTokenRepository) {
+        this.blackListedTokenRepository = blackListedTokenRepository;
+    }
 
 
     public SecretKey getKey(){
@@ -71,10 +77,15 @@ public class JwtService {
     public boolean validateToken(String token, UserDetails userDetails) {
         String username=extractUsername(token);
         boolean valid = username.equals(userDetails.getUsername()) && !isTokenExpired(token);
-        if (!valid) {
-            log.warn("JWT token validation failed for username='{}'", userDetails.getUsername());
-        }
-        return valid;
+        String jti= extractAllClaims(token).get("jti").toString();
+        boolean exists= blackListedTokenRepository.existsByJti(jti);
+
+        boolean blacklisted = blackListedTokenRepository.existsByJti(jti);
+
+
+
+        return valid && !blacklisted;
+
     }
 
 

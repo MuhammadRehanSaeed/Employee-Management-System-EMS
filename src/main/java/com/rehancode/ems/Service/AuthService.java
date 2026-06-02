@@ -6,4 +6,6 @@ import com.rehancode.ems.Exception.ApiResponse;
 
 public interface AuthService {
     ApiResponse<LoginResponseDTO> login(LoginRequestDTO loginRequestDTO);
+
+    ApiResponse<String> logout(String token);
 }

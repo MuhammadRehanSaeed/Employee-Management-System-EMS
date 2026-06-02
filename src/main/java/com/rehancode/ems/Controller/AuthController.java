@@ -4,6 +4,7 @@ import com.rehancode.ems.Dto.LoginRequestDTO;
 import com.rehancode.ems.Dto.LoginResponseDTO;
 import com.rehancode.ems.Exception.ApiResponse;
 import com.rehancode.ems.Service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,16 @@ public class AuthController {
         ApiResponse<LoginResponseDTO> response = authService.login(loginRequestDTO);
         log.info("POST /api/auth/login completed username='{}' role='{}'",
                 loginRequestDTO.getUsername(), response.getData().getEmail());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("logout")
+    public ResponseEntity<ApiResponse<String>> logout(HttpServletRequest request){
+        log.info("POST /api/auth/logout username='{}'");
+        String token = request.getHeader("Authorization");
+        token = token.substring(7);
+        ApiResponse<String> response = authService.logout(token);
+        log.info("POST /api/auth/login completed username='{}' role='{}'");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
