@@ -22,6 +22,8 @@ EMS (Employee Management System) is a role-based REST API backend built with **S
 - Role-based access control — **ADMIN** and **EMPLOYEE**
 - Account lock support (inactive accounts blocked at JWT filter level)
 - Spring Security with `DaoAuthenticationProvider`
+- Logout Methodology
+- Token Blacklisting after Logout
 
 ### 👤 User & Employee Management
 - Admin creates user accounts with auto-generated temporary passwords
