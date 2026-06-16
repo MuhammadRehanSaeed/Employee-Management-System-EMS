@@ -34,11 +34,11 @@ public class AuthController {
 
     @PostMapping("logout")
     public ResponseEntity<ApiResponse<String>> logout(HttpServletRequest request){
-        log.info("POST /api/auth/logout username='{}'");
+        log.info("POST /api/auth/logout");
         String token = request.getHeader("Authorization");
         token = token.substring(7);
         ApiResponse<String> response = authService.logout(token);
-        log.info("POST /api/auth/login completed username='{}' role='{}'");
+        log.info("POST /api/auth/login completed ");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

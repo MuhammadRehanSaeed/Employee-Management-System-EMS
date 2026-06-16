@@ -7,6 +7,7 @@ import com.rehancode.ems.Dto.MapStruct.EmployeeMapper;
 import com.rehancode.ems.Dto.MapStruct.RegisterUserMapper;
 import com.rehancode.ems.Enum.AttendanceStatus;
 import com.rehancode.ems.Enum.Role;
+import com.rehancode.ems.Events.UserRegisteredEvent;
 import com.rehancode.ems.Exception.AccessDeniedException;
 import com.rehancode.ems.Exception.ApiResponse;
 import com.rehancode.ems.Exception.UserExistsAlready;
@@ -21,12 +22,15 @@ import com.rehancode.ems.Service.AdminService;
 import com.rehancode.ems.Service.EmailService;
 import com.rehancode.ems.Util.EmailTemplates;
 import com.rehancode.ems.Util.Util;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -57,10 +61,12 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final EmployeeMapper employeeMapper;
     private final EmpRepository empRepository;
+    private final ApplicationEventPublisher publisher;
     public AdminServiceImpl(EmailService  emailService,AttendanceMapper attendanceMapper,AttendanceRepository attendanceRepository,JwtService jwtService,UserRepository userRepository,
                             BCryptPasswordEncoder encoder,
                             RegisterUserMapper mapper,EmployeeMapper employeeMapper,
-                            EmpRepository empRepository
+                            EmpRepository empRepository,
+                            ApplicationEventPublisher publisher
     ) {
         this.userRepository = userRepository;
         this.emailService = emailService;
@@ -71,11 +77,13 @@ public class AdminServiceImpl implements AdminService {
         this.encoder = encoder;
         this.mapper = mapper;
         this.empRepository=empRepository;
+        this.publisher=publisher;
     }
 
 
     @Override
-    public ApiResponse<UserResponseDTO> registerUser(UserRequestDTO userRequestDTO) {
+    @Transactional
+    public ApiResponse<UserResponseDTO> registerUser(UserRequestDTO userRequestDTO,String ip) {
         log.info("Registering new user username='{}'", userRequestDTO.getUsername());
 
         if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
@@ -111,11 +119,13 @@ public class AdminServiceImpl implements AdminService {
 
         String content = EmailTemplates.resetPasswordTemplate(user.getUsername(), tempPassword, resetLink);
         log.info("Sending welcome email to='{}' subject='EMS Portal - User Password Reset'", user.getEmail());
-        emailService.sendEmail(
-                user.getEmail(),
-                "EMS Portal - User Password Reset",
-                content
-        );
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        publisher.publishEvent(new UserRegisteredEvent(savedUser.getId(),savedUser.getEmail(),savedUser,tempPassword,username,ip));
+//        emailService.sendEmail(
+//                user.getEmail(),
+//                "EMS Portal - User Password Reset",
+//                content
+//        );
         log.debug("Welcome email dispatched (async) to='{}'", user.getEmail());
         UserResponseDTO response = mapper.mapToDto(savedUser);
         return ApiResponse.<UserResponseDTO>builder()

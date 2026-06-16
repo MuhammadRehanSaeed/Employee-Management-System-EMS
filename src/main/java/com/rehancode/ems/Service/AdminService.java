@@ -12,7 +12,7 @@ import java.util.List;
 public interface AdminService {
 
     // Admin registers a user (employee or staff)
-    ApiResponse<UserResponseDTO> registerUser(UserRequestDTO userRequestDTO);
+    ApiResponse<UserResponseDTO> registerUser(UserRequestDTO userRequestDTO,String ip);
 
     ApiResponse<EmpResponseDTO> createEmployee(EmpRequestDTO empRequestDTO);
 

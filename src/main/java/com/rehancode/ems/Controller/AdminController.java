@@ -4,6 +4,7 @@ import com.rehancode.ems.Dto.*;
 import com.rehancode.ems.Exception.ApiResponse;
 import com.rehancode.ems.Service.AdminService;
 import com.rehancode.ems.Service.LeaveService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,9 +28,10 @@ public class AdminController {
 
     @PostMapping("create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<UserResponseDTO>> registerEmp(@Valid @RequestBody UserRequestDTO userRequestDTO){
+    public ResponseEntity<ApiResponse<UserResponseDTO>> registerEmp(@Valid @RequestBody UserRequestDTO userRequestDTO,    HttpServletRequest request){
+        String ip = request.getRemoteAddr();
         log.info("POST /api/admin/create username='{}'", userRequestDTO.getUsername());
-        ApiResponse<UserResponseDTO> response = adminService.registerUser(userRequestDTO);
+        ApiResponse<UserResponseDTO> response = adminService.registerUser(userRequestDTO,ip);
         log.info("POST /api/admin/create completed userId={}", response.getData().getId());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
